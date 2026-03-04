@@ -13,12 +13,14 @@ include $(TOPDIR)/rules.mk
 # - check if default mode has changed from being tcp_only
 #
 PKG_NAME:=shadowsocks-libev
-PKG_VERSION:=3.3.5
-PKG_RELEASE:=11
+PKG_VERSION:=3.3.6
+PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev/releases/download/v$(PKG_VERSION)
-PKG_HASH:=cfc8eded35360f4b67e18dc447b0c00cddb29cc57a3cec48b135e5fb87433488
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/shadowsocks/shadowsocks-libev.git
+PKG_SOURCE_DATE:=2026-02-09
+PKG_SOURCE_VERSION:=c5e8788013a37afe54ea1c2b7c03395cccc663cf
+PKG_HASH:=96d0b486a0c8dbb2acf2af56534f6c765565c127c3695c98b5157b24993a4839
 
 PKG_MAINTAINER:=Yousong Zhou <yszhou4tech@gmail.com>
 
@@ -26,13 +28,12 @@ PKG_LICENSE:=GPL-3.0-or-later
 PKG_LICENSE_FILES:=LICENSE
 PKG_CPE_ID:=cpe:/a:shadowsocks:shadowsocks-libev
 
-PKG_FIXUP:=autoreconf
-PKG_INSTALL:=1
 PKG_BUILD_FLAGS:=no-mips16 lto
 PKG_BUILD_PARALLEL:=1
 PKG_BUILD_DEPENDS:=c-ares pcre2
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/cmake.mk
 
 
 define Package/shadowsocks-libev-config
@@ -105,21 +106,10 @@ define Package/shadowsocks-libev-ss-rules/install
 	$(INSTALL_DATA) ./files/ss-rules/* $(1)/usr/share/ss-rules/
 endef
 
-define Build/Prepare
-	$(call Build/Prepare/Default)
-	$(FIND) $(PKG_BUILD_DIR) \
-			   -name '*.o' \
-			-o -name '*.lo' \
-			-o -name '.deps' \
-			-o -name '.libs' \
-		| $(XARGS) rm -rvf
-endef
-
-CONFIGURE_ARGS += \
-	--disable-documentation \
-	--disable-silent-rules \
-	--disable-assert \
-	--disable-ssp \
+CMAKE_OPTIONS += \
+	-DWITH_STATIC=OFF \
+	-DCMAKE_BUILD_TYPE=Release \
+	-DBUILD_TESTING=OFF \
 
 TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
 
